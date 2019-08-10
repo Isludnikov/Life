@@ -9,33 +9,33 @@ namespace Life
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const int xDimension = 12;
-        private const int yDimension = 12;
-        private const int TimerInterval = 2000;
         private lib.Aerial aerial = null;
         private readonly Timer timer = null;
         public MainWindow()
         {
             InitializeComponent();
-            timer = new Timer(TimerInterval);
+            timer = new Timer(lib.Config.TimerInterval);
             timer.Elapsed += OnTimer;
-            CreateEnvironment(xDimension, yDimension);
+            CreateEnvironment(lib.Config.xDimension, lib.Config.yDimension);
             Repaint();
         }
         private void OnTimer(object sender, ElapsedEventArgs e)
         {
-            if (aerial.Step())
+            switch (aerial.Step())
             {
-                Dispatcher.Invoke(() => console.Text = $"iteration {aerial.Iteration()}");
-                //console.Text = $"iteration {aerial.Iteration()}";
-                Dispatcher.Invoke(() => Repaint());
-                //Repaint();
-            }
-            else
-            {
-                Dispatcher.Invoke(() => console.Text = $"no survivors at iteration {aerial.Iteration()}");
-                //console.Text = $"no survivors at iteration {aerial.Iteration()}";
-                Stop_Click(sender, null);
+                case lib.StepResult.NORMAL:
+                    Dispatcher.Invoke(() => console.Text = $"iteration {aerial.Iteration()}");
+                    Dispatcher.Invoke(() => Repaint());
+                    break;
+                case lib.StepResult.DEAD:
+                    Dispatcher.Invoke(() => console.Text = $"no survivors at iteration {aerial.Iteration()}");
+                    Stop_Click(sender, null);
+                    break;
+                case lib.StepResult.CYCLING:
+                    Dispatcher.Invoke(() => console.Text = $"deadlock at iteration {aerial.Iteration()}");
+                    Stop_Click(sender, null);
+                    break;
+
             }
         }
         private void Repaint()
@@ -46,10 +46,24 @@ namespace Life
                 {
                     var btn = cells.Children[k] as Button;
                     var locator = btn.Tag as lib.Locator;
-                    btn.Content = aerial.Get(locator.X, locator.Y) ? "X" : "";
+                    btn.Content = aerial.GetMarker(locator.X, locator.Y);
                 }
             }
-
+        }
+        private void Repaint(int x, int y)
+        {
+            for (int k = 0; k < cells.Children.Count; k++)
+            {
+                if (cells.Children[k] is Button)
+                {
+                    var btn = cells.Children[k] as Button;
+                    var locator = btn.Tag as lib.Locator;
+                    if (locator.X <= x + 1 && locator.X >= x - 1 || locator.Y <= y + 1 && locator.Y >= y - 1)
+                    {
+                        btn.Content = aerial.GetMarker(locator.X, locator.Y);
+                    }
+                }
+            }
         }
         private void CreateEnvironment(int x, int y)
         {
@@ -75,13 +89,23 @@ namespace Life
                 {
                     var button = new Button
                     {
-                        Name = "btn_" + i + "_" + j,
                         Tag = new lib.Locator(i, j),
                     };
+                    button.Click += Slave_Click;
                     cells.Children.Add(button);
                     Grid.SetRow(button, i);
                     Grid.SetColumn(button, j);
                 }
+            }
+        }
+        private void Slave_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button)
+            {
+                var btn = sender as Button;
+                var locator = btn.Tag as lib.Locator;
+                aerial.Set(locator.X, locator.Y, !aerial.Get(locator.X, locator.Y));
+                Repaint(locator.X, locator.Y);
             }
         }
         private void Start_Click(object sender, RoutedEventArgs e) => timer.Start();

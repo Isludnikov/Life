@@ -64,7 +64,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="lib\Aerial.cs" />
+    <Compile Include="lib\Config.cs" />
     <Compile Include="lib\Locator.cs" />
+    <Compile Include="lib\StepResult.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
