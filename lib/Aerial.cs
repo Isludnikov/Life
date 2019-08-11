@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Life.lib
 {
@@ -8,6 +9,7 @@ namespace Life.lib
         private readonly int xDimension;
         private readonly int yDimension;
         private readonly Random rnd;
+        private List<bool[,]> History;
         private int iteration;
         public Aerial(int x, int y)
         {
@@ -16,6 +18,7 @@ namespace Life.lib
             InnerArray = new bool[x, y];
             rnd = new Random();
             iteration = 0;
+            History = new List<bool[,]>();
         }
 
         public void Sow(double sowFactor = 0.1)
@@ -37,30 +40,43 @@ namespace Life.lib
         {
             InnerArray = new bool[xDimension, yDimension];
             iteration = 0;
+            History = new List<bool[,]>();
         }
 
         public StepResult Step()
         {
             if (!AnyAlive()) return StepResult.DEAD;
-            bool eq = true;
+
+            History.Add(InnerArray);
             var tmp = new bool[xDimension, yDimension];
             for (var x = 0; x < xDimension; x++)
             {
                 for (var y = 0; y < yDimension; y++)
                 {
-                    tmp[x, y] = Calculate(x, y, InnerArray[x, y]);
-                    if (tmp[x,y] != InnerArray[x,y])
-                    {
-                        eq = false;
-                    }
+                    tmp[x, y] = Calculate(x, y);
                 }
             }
-            if (eq) return StepResult.CYCLING;
             InnerArray = tmp;
             iteration++;
+            if (CheckHistory(History, tmp)) return StepResult.CYCLING;
             return StepResult.NORMAL;
         }
-        private bool Calculate(int x, int y, bool state)
+        private bool CheckHistory(List<bool[,]> history, bool[,] obj) => history.Exists(x => ArrayEqual(x, obj));
+
+        private bool ArrayEqual(bool[,] a, bool[,] b)
+        {
+            if (a.GetLength(0) != b.GetLength(0) || a.GetLength(1) != b.GetLength(1)) return false;
+            for (var x = 0; x < a.GetLength(0); x++)
+            {
+                for (var y = 0; y < a.GetLength(1); y++)
+                {
+                    if (a[x, y] != b[x, y]) return false;
+                }
+            }
+            return true;
+        }
+
+        private bool Calculate(int x, int y)
         {
             switch (AliveNeighbors(x, y))
             {
@@ -68,7 +84,7 @@ namespace Life.lib
                 case 1:
                     return false;
                 case 2:
-                    if (state) return true;
+                    if (Get(x,y)) return true;
                     else return false;
                 case 3:
                     return true;

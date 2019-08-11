@@ -26,7 +26,6 @@ namespace Life
             {
                 case lib.StepResult.NORMAL:
                     Dispatcher.Invoke(() => console.Text = $"iteration {aerial.Iteration()}");
-                    Dispatcher.Invoke(() => Repaint());
                     break;
                 case lib.StepResult.DEAD:
                     Dispatcher.Invoke(() => console.Text = $"no survivors at iteration {aerial.Iteration()}");
@@ -38,6 +37,7 @@ namespace Life
                     break;
 
             }
+            Dispatcher.Invoke(() => Repaint());
         }
         private void Repaint()
         {
