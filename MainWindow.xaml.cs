@@ -11,6 +11,7 @@ namespace Life
     {
         private lib.Aerial aerial = null;
         private readonly Timer timer = null;
+        private Button[,] buttonArray = null;
         public MainWindow()
         {
             InitializeComponent();
@@ -40,28 +41,22 @@ namespace Life
         }
         private void Repaint()
         {
-            for (int k = 0; k < cells.Children.Count; k++)
+            for (int k = 0; k < lib.Config.xDimension; k++)
             {
-                if (cells.Children[k] is Button)
+                for (int j = 0; j < lib.Config.yDimension; j++)
                 {
-                    var btn = cells.Children[k] as Button;
-                    var locator = btn.Tag as lib.Locator;
-                    btn.Content = aerial.GetMarker(locator.X, locator.Y);
+                    buttonArray[k, j].Content = aerial.GetMarker(k, j);
                 }
             }
         }
         private void Repaint(int x, int y)
         {
-            for (int k = 0; k < cells.Children.Count; k++)
+            for (int k = 0; k < lib.Config.xDimension; k++)
             {
-                if (cells.Children[k] is Button)
+                for (int j = 0; j < lib.Config.yDimension; j++)
                 {
-                    var btn = cells.Children[k] as Button;
-                    var locator = btn.Tag as lib.Locator;
-                    if (locator.X <= x + 1 && locator.X >= x - 1 || locator.Y <= y + 1 && locator.Y >= y - 1)
-                    {
-                        btn.Content = aerial.GetMarker(locator.X, locator.Y);
-                    }
+                    if (k <= x + 1 && k >= x - 1 || j <= y + 1 && j >= y - 1)
+                    buttonArray[k, j].Content = aerial.GetMarker(k, j);
                 }
             }
         }
@@ -69,6 +64,9 @@ namespace Life
         {
             aerial = new lib.Aerial(x, y);
             aerial.Sow(0.4);
+
+            buttonArray = new Button[x, y];
+
             cells.Children.Clear();
             cells.RowDefinitions.Clear();
             cells.ColumnDefinitions.Clear();
@@ -95,6 +93,8 @@ namespace Life
                     cells.Children.Add(button);
                     Grid.SetRow(button, i);
                     Grid.SetColumn(button, j);
+                    buttonArray[i, j] = button;
+
                 }
             }
         }

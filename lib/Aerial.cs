@@ -4,7 +4,7 @@ namespace Life.lib
 {
     class Aerial
     {
-        private bool[,] inner_array;
+        private bool[,] InnerArray;
         private readonly int xDimension;
         private readonly int yDimension;
         private readonly Random rnd;
@@ -13,7 +13,7 @@ namespace Life.lib
         {
             xDimension = x;
             yDimension = y;
-            inner_array = new bool[x, y];
+            InnerArray = new bool[x, y];
             rnd = new Random();
             iteration = 0;
         }
@@ -24,18 +24,18 @@ namespace Life.lib
             {
                 for (var y = 0; y < yDimension; y++)
                 {
-                    inner_array[x, y] = rnd.NextDouble() <= sowFactor ? true : inner_array[x, y];
+                    InnerArray[x, y] = rnd.NextDouble() <= sowFactor ? true : InnerArray[x, y];
                 }
             }
         }
         public int Iteration() => iteration;
         public int XDimension() => xDimension;
         public int YDimension() => yDimension;
-        public bool Get(int x, int y) => inner_array[x, y];
-        public void Set(int x, int y, bool value) => inner_array[x, y] = value;
+        public bool Get(int x, int y) => InnerArray[x, y];
+        public void Set(int x, int y, bool value) => InnerArray[x, y] = value;
         public void Clear()
         {
-            inner_array = new bool[xDimension, yDimension];
+            InnerArray = new bool[xDimension, yDimension];
             iteration = 0;
         }
 
@@ -48,15 +48,15 @@ namespace Life.lib
             {
                 for (var y = 0; y < yDimension; y++)
                 {
-                    tmp[x, y] = Calculate(x, y, inner_array[x, y]);
-                    if (tmp[x,y] != inner_array[x,y])
+                    tmp[x, y] = Calculate(x, y, InnerArray[x, y]);
+                    if (tmp[x,y] != InnerArray[x,y])
                     {
                         eq = false;
                     }
                 }
             }
             if (eq) return StepResult.CYCLING;
-            inner_array = tmp;
+            InnerArray = tmp;
             iteration++;
             return StepResult.NORMAL;
         }
@@ -78,8 +78,8 @@ namespace Life.lib
         }
         public string GetMarker(int x, int y)
         {
-            var result = inner_array[x, y] ? "X" : "";
-            if (lib.Config.debug) result += AliveNeighbors(x, y);
+            var result = InnerArray[x, y] ? "X" : "";
+            if (Config.debug) result += AliveNeighbors(x, y);
             return result;
         }
         private int AliveNeighbors(int x, int y)
@@ -91,12 +91,12 @@ namespace Life.lib
                 {
                     try
                     {
-                        if (inner_array[i, j]) count++;
+                        if (InnerArray[i, j]) count++;
                     }
                     catch { }
                 }
             }
-            if (inner_array[x, y]) count--;
+            if (InnerArray[x, y]) count--;
             return count;
         }
         private bool AnyAlive()
@@ -105,7 +105,7 @@ namespace Life.lib
             {
                 for (var y = 0; y < yDimension; y++)
                 {
-                    if (inner_array[x, y]) return true;
+                    if (InnerArray[x, y]) return true;
                 }
             }
             return false;
