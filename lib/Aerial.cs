@@ -30,18 +30,24 @@ namespace Life.lib
                     InnerArray[x, y] = rnd.NextDouble() <= sowFactor ? true : InnerArray[x, y];
                 }
             }
+            ClearHistory();
         }
         public int Iteration() => iteration;
-        public int XDimension() => xDimension;
-        public int YDimension() => yDimension;
+        public int XDimension => xDimension;
+        public int YDimension => yDimension;
         public bool Get(int x, int y) => InnerArray[x, y];
-        public void Set(int x, int y, bool value) => InnerArray[x, y] = value;
+        public void Set(int x, int y, bool value)
+        {
+            InnerArray[x, y] = value;
+            ClearHistory();
+        }
         public void Clear()
         {
             InnerArray = new bool[xDimension, yDimension];
             iteration = 0;
-            History = new List<bool[,]>();
+            ClearHistory();
         }
+        public void ClearHistory() => History.Clear();
 
         public StepResult Step()
         {
@@ -84,7 +90,7 @@ namespace Life.lib
                 case 1:
                     return false;
                 case 2:
-                    if (Get(x,y)) return true;
+                    if (Get(x, y)) return true;
                     else return false;
                 case 3:
                     return true;

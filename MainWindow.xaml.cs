@@ -1,6 +1,7 @@
 ﻿using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Life
 {
@@ -41,22 +42,26 @@ namespace Life
         }
         private void Repaint()
         {
-            for (int k = 0; k < lib.Config.xDimension; k++)
+            for (int k = 0; k < aerial.XDimension; k++)
             {
-                for (int j = 0; j < lib.Config.yDimension; j++)
+                for (int j = 0; j < aerial.YDimension; j++)
                 {
-                    buttonArray[k, j].Content = aerial.GetMarker(k, j);
+                    //buttonArray[k, j].Content = aerial.GetMarker(k, j);
+                    buttonArray[k, j].Background = aerial.Get(k, j) ? Brushes.Black : Brushes.White;
                 }
             }
         }
         private void Repaint(int x, int y)
         {
-            for (int k = 0; k < lib.Config.xDimension; k++)
+            for (int k = 0; k < aerial.XDimension; k++)
             {
-                for (int j = 0; j < lib.Config.yDimension; j++)
+                for (int j = 0; j < aerial.YDimension; j++)
                 {
                     if (k <= x + 1 && k >= x - 1 || j <= y + 1 && j >= y - 1)
-                    buttonArray[k, j].Content = aerial.GetMarker(k, j);
+                    {
+                        //buttonArray[k, j].Content = aerial.GetMarker(k, j);
+                        buttonArray[k, j].Background = aerial.Get(k, j) ? Brushes.Black : Brushes.White;
+                    }
                 }
             }
         }
@@ -71,19 +76,19 @@ namespace Life
             cells.RowDefinitions.Clear();
             cells.ColumnDefinitions.Clear();
 
-            for (int i = 0; i < aerial.XDimension(); i++)
+            for (int i = 0; i < aerial.XDimension; i++)
             {
                 cells.ColumnDefinitions.Add(new ColumnDefinition());
             }
 
-            for (int i = 0; i < aerial.YDimension(); i++)
+            for (int i = 0; i < aerial.YDimension; i++)
             {
                 cells.RowDefinitions.Add(new RowDefinition());
             }
 
-            for (int i = 0; i < aerial.XDimension(); i++)
+            for (int i = 0; i < aerial.XDimension; i++)
             {
-                for (int j = 0; j < aerial.YDimension(); j++)
+                for (int j = 0; j < aerial.YDimension; j++)
                 {
                     var button = new Button
                     {
@@ -108,7 +113,11 @@ namespace Life
                 Repaint(locator.X, locator.Y);
             }
         }
-        private void Start_Click(object sender, RoutedEventArgs e) => timer.Start();
+        private void Start_Click(object sender, RoutedEventArgs e)
+        {
+            timer.Start();
+            OnTimer(sender, null);
+        }
         private void Stop_Click(object sender, RoutedEventArgs e) => timer.Stop();
         private void Clear_Click(object sender, RoutedEventArgs e)
         {
@@ -119,6 +128,16 @@ namespace Life
         {
             aerial.Sow();
             Repaint();
+        }
+
+        private void Save_Click(object sender, RoutedEventArgs e)
+        {
+            console.Text = "not implemented";
+        }
+
+        private void Load_Click(object sender, RoutedEventArgs e)
+        {
+            console.Text = "not implemented";
         }
     }
 }

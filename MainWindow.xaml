@@ -19,12 +19,16 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Button Grid.Column ="0" x:Name="start" Content="start" Click="Start_Click"/>
             <Button Grid.Column ="1" x:Name="stop" Content="stop" Click="Stop_Click"/>
             <Button Grid.Column ="2" x:Name="clear" Content="clear" Click="Clear_Click"/>
             <Button Grid.Column ="3" x:Name="random" Content="random" Click="Random_Click"/>
-            <TextBlock Grid.Column="4" x:Name="console" Text=""/>
+            <Button Grid.Column ="4" x:Name="save" Content="save" Click="Save_Click"/>
+            <Button Grid.Column ="5" x:Name="load" Content="load" Click="Load_Click"/>
+            <TextBlock Grid.Column="6" x:Name="console" Text=""/>
         </Grid>
     </Grid>
 </Window>
