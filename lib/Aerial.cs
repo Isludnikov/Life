@@ -116,11 +116,25 @@ namespace Life.lib
             {
                 for (var j = y - 1; j <= y + 1; j++)
                 {
-                    try
+                    int CorrectedI = i;
+                    int CorrectedJ = j;
+                    if (i >= InnerArray.Length)
                     {
-                        if (InnerArray[i][j]) count++;
+                        CorrectedI -= InnerArray.Length;
                     }
-                    catch { }
+                    if (i < 0)
+                    {
+                        CorrectedI += InnerArray.Length;
+                    }
+                    if (j >= InnerArray[CorrectedI].Length)
+                    {
+                        CorrectedJ -= InnerArray[CorrectedI].Length;
+                    }
+                    if (j < 0)
+                    {
+                        CorrectedJ += InnerArray[CorrectedI].Length;
+                    }
+                    if (InnerArray[CorrectedI][CorrectedJ]) count++;
                 }
             }
             if (InnerArray[x][y]) count--;
