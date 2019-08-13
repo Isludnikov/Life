@@ -1,6 +1,6 @@
 ﻿namespace Life.lib
 {
-    class ArrayHelper
+    internal class ArrayHelper
     {
         public static bool[][] CreateArray(int x, int y)
         {

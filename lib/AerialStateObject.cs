@@ -1,6 +1,6 @@
 ﻿namespace Life.lib
 {
-    class AerialStateObject
+    internal class AerialStateObject
     {
         public string Version;
         public int XDimension;

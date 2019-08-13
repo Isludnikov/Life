@@ -1,6 +1,6 @@
 ﻿namespace Life.lib
 {
-    class Locator
+    internal class Locator
     {
         public int X { get; }
 

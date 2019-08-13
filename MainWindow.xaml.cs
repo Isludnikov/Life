@@ -1,11 +1,12 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.IO;
 using System.Timers;
 using System.Web.Script.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Life.lib;
+using Microsoft.Win32;
 
 namespace Life
 {
@@ -14,127 +15,125 @@ namespace Life
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly lib.Aerial Aerial = null;
-        private readonly Timer timer = null;
-        private Button[,] buttonArray = null;
+        private readonly Aerial _aerial;
+        private readonly Timer _timer;
+        private Button[,] _buttonArray;
         public MainWindow()
         {
             InitializeComponent();
-            timer = new Timer(lib.Config.TimerInterval);
-            timer.Elapsed += OnTimer;
-            Aerial = new lib.Aerial(lib.Config.xDimension, lib.Config.yDimension);
+            _timer = new Timer(Config.TimerInterval);
+            _timer.Elapsed += OnTimer;
+            _aerial = new Aerial(Config.XDimension, Config.YDimension);
             CreateEnvironment();
-            Aerial.Sow(0.4);
+            _aerial.Sow(0.4);
             Repaint();
             InnerSave(".\\autosave" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + ".life");
         }
         private void OnTimer(object sender, ElapsedEventArgs e)
         {
-            switch (Aerial.Step())
+            switch (_aerial.Step())
             {
-                case lib.StepResult.NORMAL:
-                    Dispatcher.Invoke(() => console.Text = $"iteration {Aerial.Iteration()}");
+                case StepResult.NORMAL:
+                    Dispatcher.Invoke(() => console.Text = $"iteration {_aerial.Iteration}");
                     break;
-                case lib.StepResult.DEAD:
-                    Dispatcher.Invoke(() => console.Text = $"no survivors at iteration {Aerial.Iteration()}");
+                case StepResult.DEAD:
+                    Dispatcher.Invoke(() => console.Text = $"no survivors at iteration {_aerial.Iteration}");
                     Stop_Click(sender, null);
                     break;
-                case lib.StepResult.CYCLING:
-                    Dispatcher.Invoke(() => console.Text = $"deadlock at iteration {Aerial.Iteration()}");
+                case StepResult.CYCLING:
+                    Dispatcher.Invoke(() => console.Text = $"deadlock at iteration {_aerial.Iteration}");
                     Stop_Click(sender, null);
                     break;
 
             }
-            Dispatcher.Invoke(() => Repaint());
+            Dispatcher.Invoke(Repaint);
         }
         private void Repaint()
         {
-            for (int k = 0; k < Aerial.XDimension; k++)
+            for (var k = 0; k < _aerial.XDimension; k++)
             {
-                for (int j = 0; j < Aerial.YDimension; j++)
+                for (var j = 0; j < _aerial.YDimension; j++)
                 {
-                    //buttonArray[k, j].Content = aerial.GetMarker(k, j);
-                    buttonArray[k, j].Background = Aerial.Get(k, j) ? Brushes.Black : Brushes.White;
+                    _buttonArray[k, j].Background = _aerial.Get(k, j) ? Brushes.Black : Brushes.White;
                 }
             }
         }
         private void Repaint(int x, int y)
         {
-            for (int k = 0; k < Aerial.XDimension; k++)
+            for (var k = 0; k < _aerial.XDimension; k++)
             {
-                for (int j = 0; j < Aerial.YDimension; j++)
+                for (var j = 0; j < _aerial.YDimension; j++)
                 {
                     if (k <= x + 1 && k >= x - 1 || j <= y + 1 && j >= y - 1)
                     {
-                        buttonArray[k, j].Background = Aerial.Get(k, j) ? Brushes.Black : Brushes.White;
+                        _buttonArray[k, j].Background = _aerial.Get(k, j) ? Brushes.Black : Brushes.White;
                     }
                 }
             }
         }
         private void CreateEnvironment()
         {
-            buttonArray = new Button[Aerial.XDimension, Aerial.YDimension];
+            _buttonArray = new Button[_aerial.XDimension, _aerial.YDimension];
 
             cells.Children.Clear();
             cells.RowDefinitions.Clear();
             cells.ColumnDefinitions.Clear();
 
-            for (int i = 0; i < Aerial.XDimension; i++)
+            for (var i = 0; i < _aerial.XDimension; i++)
             {
                 cells.ColumnDefinitions.Add(new ColumnDefinition());
             }
 
-            for (int i = 0; i < Aerial.YDimension; i++)
+            for (var i = 0; i < _aerial.YDimension; i++)
             {
                 cells.RowDefinitions.Add(new RowDefinition());
             }
 
-            for (int i = 0; i < Aerial.XDimension; i++)
+            for (var i = 0; i < _aerial.XDimension; i++)
             {
-                for (int j = 0; j < Aerial.YDimension; j++)
+                for (var j = 0; j < _aerial.YDimension; j++)
                 {
                     var button = new Button
                     {
-                        Tag = new lib.Locator(i, j),
+                        Tag = new Locator(i, j)
                     };
                     button.Click += Slave_Click;
                     cells.Children.Add(button);
                     Grid.SetRow(button, i);
                     Grid.SetColumn(button, j);
-                    buttonArray[i, j] = button;
+                    _buttonArray[i, j] = button;
 
                 }
             }
         }
+
         private void Slave_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button)
-            {
-                var btn = sender as Button;
-                var locator = btn.Tag as lib.Locator;
-                Aerial.Set(locator.X, locator.Y, !Aerial.Get(locator.X, locator.Y));
-                Repaint(locator.X, locator.Y);
-            }
+            if (!(sender is Button btn)) return;
+
+            var locator = btn.Tag as Locator;
+            _aerial.Set(locator.X, locator.Y, !_aerial.Get(locator.X, locator.Y));
+            Repaint(locator.X, locator.Y);
         }
         private void Start_Click(object sender, RoutedEventArgs e)
         {
-            timer.Start();
+            _timer.Start();
             OnTimer(sender, null);
         }
-        private void Stop_Click(object sender, RoutedEventArgs e) => timer.Stop();
+        private void Stop_Click(object sender, RoutedEventArgs e) => _timer.Stop();
         private void Clear_Click(object sender, RoutedEventArgs e)
         {
-            Aerial.Clear();
+            _aerial.Clear();
             Repaint();
         }
         private void Random_Click(object sender, RoutedEventArgs e)
         {
-            Aerial.Sow();
+            _aerial.Sow();
             Repaint();
         }
         private void Save_Click(object sender, RoutedEventArgs e)
         {
-            SaveFileDialog saveFileDialog1 = new SaveFileDialog
+            var saveFileDialog1 = new SaveFileDialog
             {
                 Filter = "life files (*.life)|*.life|All files (*.*)|*.*",
                 FilterIndex = 2,
@@ -149,14 +148,14 @@ namespace Life
         private void InnerSave(string filename)
         {
             var myStream = new StreamWriter(filename);
-            var save = Aerial.GetState();
-            var json = new JavaScriptSerializer().Serialize(save);
+            var saveState = _aerial.GetState();
+            var json = new JavaScriptSerializer().Serialize(saveState);
             myStream.Write(json);
             myStream.Close();
         }
         private void Load_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog1 = new OpenFileDialog
+            var openFileDialog1 = new OpenFileDialog
             {
                 CheckFileExists = true,
                 CheckPathExists = true,
@@ -173,8 +172,8 @@ namespace Life
             if (openFileDialog1.ShowDialog() == true)
             {
                 var text = File.ReadAllText(openFileDialog1.FileName);
-                var json = new JavaScriptSerializer().Deserialize<lib.AerialStateObject>(text);
-                Aerial.LoadState(json);
+                var json = new JavaScriptSerializer().Deserialize<AerialStateObject>(text);
+                _aerial.LoadState(json);
                 CreateEnvironment();
                 Repaint();
             }

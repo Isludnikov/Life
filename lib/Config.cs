@@ -1,11 +1,11 @@
 ﻿namespace Life.lib
 {
-    class Config
+    internal static class Config
     {
-        public static readonly bool debug = false;
-        public static readonly int xDimension = 27;
-        public static readonly int yDimension = 27;
-        public static readonly int TimerInterval = 2000;
-        public static readonly string Version = "0.1";
+        public const int XDimension = 33;
+        public const int YDimension = 33;
+        public const int TimerInterval = 500;
+        public const string Version = "0.1";
+        public const int HistoryLimit = 1000;
     }
 }

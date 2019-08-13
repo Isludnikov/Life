@@ -5,70 +5,82 @@ namespace Life.lib
 {
     class Aerial
     {
-        private bool[][] InnerArray;
-        private int xDimension;
-        private int yDimension;
-        private readonly Random rnd;
-        private readonly List<bool[][]> History;
-        private int iteration;
+        private bool[][] _innerArray;
+        private readonly Random _rnd;
+        private readonly List<HistoryElement> _history;
+        private int _iteration;
         public Aerial(int x, int y)
         {
-            xDimension = x;
-            yDimension = y;
-            InnerArray = ArrayHelper.CreateArray(x, y);
-            rnd = new Random();
-            iteration = 0;
-            History = new List<bool[][]>();
+            XDimension = x;
+            YDimension = y;
+            _innerArray = ArrayHelper.CreateArray(x, y);
+            _rnd = new Random();
+            _iteration = 0;
+            _history = new List<HistoryElement>();
         }
 
         public void Sow(double sowFactor = 0.1)
         {
-            for (var x = 0; x < xDimension; x++)
+            for (var x = 0; x < XDimension; x++)
             {
-                for (var y = 0; y < yDimension; y++)
+                for (var y = 0; y < YDimension; y++)
                 {
-                    InnerArray[x][y] = rnd.NextDouble() <= sowFactor ? true : InnerArray[x][y];
+                    _innerArray[x][y] = _rnd.NextDouble() <= sowFactor || _innerArray[x][y];
                 }
             }
             ClearHistory();
         }
-        public int Iteration() => iteration;
-        public int XDimension => xDimension;
-        public int YDimension => yDimension;
-        public bool Get(int x, int y) => InnerArray[x][y];
+
+        public int Iteration => _iteration;
+
+        public int XDimension { get; private set; }
+
+        public int YDimension { get; private set; }
+
+        public bool Get(int x, int y) => _innerArray[x][y];
         public void Set(int x, int y, bool value)
         {
-            InnerArray[x][y] = value;
+            _innerArray[x][y] = value;
             ClearHistory();
         }
         public void Clear()
         {
-            InnerArray = ArrayHelper.CreateArray(xDimension, yDimension);
-            iteration = 0;
+            _innerArray = ArrayHelper.CreateArray(XDimension, YDimension);
+            _iteration = 0;
             ClearHistory();
         }
-        public void ClearHistory() => History.Clear();
+        public void ClearHistory() => _history.Clear();
 
         public StepResult Step()
         {
             if (!AnyAlive()) return StepResult.DEAD;
 
-            History.Add(InnerArray);
-            var tmp = ArrayHelper.CreateArray(xDimension, yDimension);
-            for (var x = 0; x < xDimension; x++)
+            _history.Add(new HistoryElement()
             {
-                for (var y = 0; y < yDimension; y++)
+                Data = _innerArray,
+                Iteration = Iteration,
+            });
+            var tmp = ArrayHelper.CreateArray(XDimension, YDimension);
+            for (var x = 0; x < XDimension; x++)
+            {
+                for (var y = 0; y < YDimension; y++)
                 {
                     tmp[x][y] = Calculate(x, y);
                 }
             }
-            InnerArray = tmp;
-            iteration++;
-            if (CheckHistory(History, tmp)) return StepResult.CYCLING;
-            return StepResult.NORMAL;
+            _innerArray = tmp;
+            _iteration++;
+            return CheckHistory(tmp) ? StepResult.CYCLING : StepResult.NORMAL;
         }
-        private bool CheckHistory(List<bool[][]> history, bool[][] obj) => history.Exists(x => ArrayHelper.ArrayEqual(x, obj));
+        private bool CheckHistory(bool[][] obj) => _history.Exists(x => ArrayHelper.ArrayEqual(x.Data, obj));
 
+        private void TrimHistory()
+        {
+            if (_history.Count > Config.HistoryLimit)
+            {
+                _history.RemoveAt(0);
+            }
+        }
         private bool Calculate(int x, int y)
         {
             switch (AliveNeighbors(x, y))
@@ -77,8 +89,7 @@ namespace Life.lib
                 case 1:
                     return false;
                 case 2:
-                    if (Get(x, y)) return true;
-                    else return false;
+                    return Get(x, y);
                 case 3:
                     return true;
                 default:
@@ -93,7 +104,7 @@ namespace Life.lib
                 XDimension = XDimension,
                 YDimension = YDimension,
                 Version = Config.Version,
-                Aerial = InnerArray
+                Aerial = _innerArray
             };
             return ret;
         }
@@ -102,51 +113,51 @@ namespace Life.lib
         {
             if (load.Version != Config.Version) return false;
 
-            xDimension = load.XDimension;
-            yDimension = load.YDimension;
-            InnerArray = load.Aerial;
-            iteration = 0;
-            History.Clear();
+            XDimension = load.XDimension;
+            YDimension = load.YDimension;
+            _innerArray = load.Aerial;
+            _iteration = 0;
+            _history.Clear();
             return true;
         }
         private int AliveNeighbors(int x, int y)
         {
-            int count = 0;
+            var count = 0;
             for (var i = x - 1; i <= x + 1; i++)
             {
                 for (var j = y - 1; j <= y + 1; j++)
                 {
-                    int CorrectedI = i;
-                    int CorrectedJ = j;
-                    if (i >= InnerArray.Length)
+                    var correctedI = i;
+                    var correctedJ = j;
+                    if (i >= _innerArray.Length)
                     {
-                        CorrectedI -= InnerArray.Length;
+                        correctedI -= _innerArray.Length;
                     }
                     if (i < 0)
                     {
-                        CorrectedI += InnerArray.Length;
+                        correctedI += _innerArray.Length;
                     }
-                    if (j >= InnerArray[CorrectedI].Length)
+                    if (j >= _innerArray[correctedI].Length)
                     {
-                        CorrectedJ -= InnerArray[CorrectedI].Length;
+                        correctedJ -= _innerArray[correctedI].Length;
                     }
                     if (j < 0)
                     {
-                        CorrectedJ += InnerArray[CorrectedI].Length;
+                        correctedJ += _innerArray[correctedI].Length;
                     }
-                    if (InnerArray[CorrectedI][CorrectedJ]) count++;
+                    if (_innerArray[correctedI][correctedJ]) count++;
                 }
             }
-            if (InnerArray[x][y]) count--;
+            if (_innerArray[x][y]) count--;
             return count;
         }
         private bool AnyAlive()
         {
-            for (var x = 0; x < xDimension; x++)
+            for (var x = 0; x < XDimension; x++)
             {
-                for (var y = 0; y < yDimension; y++)
+                for (var y = 0; y < YDimension; y++)
                 {
-                    if (InnerArray[x][y]) return true;
+                    if (_innerArray[x][y]) return true;
                 }
             }
             return false;

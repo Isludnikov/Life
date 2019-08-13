@@ -68,6 +68,7 @@
     <Compile Include="lib\Aerial.cs" />
     <Compile Include="lib\ArrayHelper.cs" />
     <Compile Include="lib\Config.cs" />
+    <Compile Include="lib\HistoryElement.cs" />
     <Compile Include="lib\Locator.cs" />
     <Compile Include="lib\AerialStateObject.cs" />
     <Compile Include="lib\StepResult.cs" />
