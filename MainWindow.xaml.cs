@@ -1,7 +1,11 @@
-﻿using System.Timers;
+﻿using Microsoft.Win32;
+using System.IO;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Web.Script.Serialization;
+using System.Text;
 
 namespace Life
 {
@@ -18,7 +22,9 @@ namespace Life
             InitializeComponent();
             timer = new Timer(lib.Config.TimerInterval);
             timer.Elapsed += OnTimer;
-            CreateEnvironment(lib.Config.xDimension, lib.Config.yDimension);
+            aerial = new lib.Aerial(lib.Config.xDimension, lib.Config.yDimension);
+            CreateEnvironment(aerial);
+            aerial.Sow(0.4);
             Repaint();
         }
         private void OnTimer(object sender, ElapsedEventArgs e)
@@ -65,12 +71,9 @@ namespace Life
                 }
             }
         }
-        private void CreateEnvironment(int x, int y)
+        private void CreateEnvironment(lib.Aerial aerial)
         {
-            aerial = new lib.Aerial(x, y);
-            aerial.Sow(0.4);
-
-            buttonArray = new Button[x, y];
+            buttonArray = new Button[aerial.XDimension, aerial.YDimension];
 
             cells.Children.Clear();
             cells.RowDefinitions.Clear();
@@ -132,12 +135,52 @@ namespace Life
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
-            console.Text = "not implemented";
+            Stream myStream;
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog
+            {
+                Filter = "life files (*.life)|*.life|All files (*.*)|*.*",
+                FilterIndex = 2,
+                RestoreDirectory = true
+            };
+
+            if (saveFileDialog1.ShowDialog() == true)
+            {
+                if ((myStream = saveFileDialog1.OpenFile()) != null)
+                {
+                    var save = aerial.GetState();
+                    var json = new JavaScriptSerializer().Serialize(save);
+                    var bytes = Encoding.UTF8.GetBytes(json);
+                    myStream.Write(bytes, 0, bytes.Length);
+                    myStream.Close();
+                }
+            }
         }
 
         private void Load_Click(object sender, RoutedEventArgs e)
         {
-            console.Text = "not implemented";
+            OpenFileDialog openFileDialog1 = new OpenFileDialog
+            {
+                CheckFileExists = true,
+                CheckPathExists = true,
+
+                DefaultExt = "life",
+                Filter = "life files (*.life)|*.life|All files (*.*)|*.*",
+                FilterIndex = 2,
+                RestoreDirectory = true,
+
+                ReadOnlyChecked = true,
+                ShowReadOnly = true
+            };
+
+            if (openFileDialog1.ShowDialog() == true)
+            {
+                var text = File.ReadAllText(openFileDialog1.FileName);
+                var json = new JavaScriptSerializer().Deserialize<lib.AerialStateObject>(text);
+                aerial.LoadState(json);
+                CreateEnvironment(aerial);
+                Repaint();
+            }
+
         }
     }
 }
